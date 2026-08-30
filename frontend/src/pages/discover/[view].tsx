@@ -40,7 +40,7 @@ const views = {
 } as const;
 type View = keyof typeof views;
 
-const categories = [
+const defaultCategories = [
   "All",
   "Fresh Produce",
   "Dairy & Breakfast",
@@ -62,6 +62,7 @@ export default function DiscoverPage() {
   const [subscriptions, setSubscriptions] = useState<string[]>([]);
   const [busy, setBusy] = useState<string[]>([]);
   const [category, setCategory] = useState("All");
+  const [categories, setCategories] = useState<string[]>(defaultCategories);
 
   useEffect(() => {
     try {
@@ -81,10 +82,29 @@ export default function DiscoverPage() {
   }, []);
 
   useEffect(() => {
+    void apiFetch("/products/filters")
+      .then(async (response) => {
+        if (!response.ok) return { categories: [] as string[] };
+        return (await response.json()) as { categories?: string[] };
+      })
+      .then((data) => {
+        const nextCategories = Array.isArray(data?.categories)
+          ? data.categories.filter(
+              (item): item is string =>
+                typeof item === "string" && item.trim().length > 0,
+            )
+          : [];
+        const combined = ["All", ...Array.from(new Set(nextCategories)).sort()];
+        setCategories(combined);
+      })
+      .catch(() => setCategories(defaultCategories));
+  }, []);
+
+  useEffect(() => {
     if (!router.isReady) return;
     setLoading(true);
     setMessage("");
-    setCategory("All");
+    const selectedCategory = category === "All" ? "" : category;
     const savedIds: string[] =
       view === "saved"
         ? (() => {
@@ -114,26 +134,40 @@ export default function DiscoverPage() {
         : view === "buy-again"
           ? apiFetch("/orders/buy-again")
           : view === "daily"
-            ? Promise.all([
-                apiFetch(
-                  "/products?category=Fresh%20Produce&sort=price-asc&limit=18",
-                ),
-                apiFetch(
-                  "/products?category=Dairy%20%26%20Breakfast&sort=price-asc&limit=18",
-                ),
-              ]).then(async ([fresh, dairy]) => ({
-                ok: fresh.ok && dairy.ok,
-                json: async () => {
-                  const [a, b] = await Promise.all([
-                    fresh.json(),
-                    dairy.json(),
-                  ]);
-                  return {
-                    products: [...(a.products ?? []), ...(b.products ?? [])],
-                  };
-                },
-              }))
-            : apiFetch("/products?sort=price-asc&limit=36");
+            ? selectedCategory
+              ? apiFetch(
+                  `/products?category=${encodeURIComponent(selectedCategory)}&sort=price-asc&limit=36`,
+                )
+              : Promise.all([
+                  apiFetch(
+                    "/products?category=Fresh%20Produce&sort=price-asc&limit=18",
+                  ),
+                  apiFetch(
+                    "/products?category=Dairy%20%26%20Breakfast&sort=price-asc&limit=18",
+                  ),
+                ]).then(async ([fresh, dairy]) => ({
+                  ok: fresh.ok && dairy.ok,
+                  json: async () => {
+                    const [a, b] = await Promise.all([
+                      fresh.json(),
+                      dairy.json(),
+                    ]);
+                    return {
+                      products: [...(a.products ?? []), ...(b.products ?? [])],
+                    };
+                  },
+                }))
+            : view === "top-picks"
+              ? selectedCategory
+                ? apiFetch(
+                    `/products?category=${encodeURIComponent(selectedCategory)}&sort=price-asc&limit=36`,
+                  )
+                : apiFetch("/products/homepage")
+              : apiFetch(
+                  selectedCategory
+                    ? `/products?category=${encodeURIComponent(selectedCategory)}&sort=price-asc&limit=36`
+                    : "/products?sort=price-asc&limit=36",
+                );
     Promise.resolve(request)
       .then(async (response) => {
         const data = await response.json();
@@ -149,7 +183,7 @@ export default function DiscoverPage() {
         ),
       )
       .finally(() => setLoading(false));
-  }, [router.isReady, view]);
+  }, [router.isReady, view, category]);
 
   const visible = useMemo(
     () =>

@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 const { Schema, model, models } = mongoose;
-const addressSchema = new Schema({
+const addressSchema = new Schema(
+  {
     label: { type: String, required: true, trim: true, maxlength: 50 },
     fullName: { type: String, required: true, trim: true, maxlength: 100 },
     phone: { type: String, required: true, trim: true, maxlength: 15 },
@@ -11,25 +12,29 @@ const addressSchema = new Schema({
     pincode: { type: String, required: true, trim: true, maxlength: 6 },
     mapUrl: { type: String, trim: true, maxlength: 500, default: "" },
     isDefault: { type: Boolean, default: false },
-}, { _id: true });
-const schema = new Schema({
+  },
+  { _id: true },
+);
+const schema = new Schema(
+  {
     name: { type: String, required: true, trim: true, maxlength: 100 },
     email: {
-        type: String,
-        required: true,
-        unique: true,
-        lowercase: true,
-        trim: true,
-        index: true,
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+      trim: true,
+      index: true,
     },
     passwordHash: { type: String, required: true, select: false },
     role: {
-        type: String,
-        enum: ["customer", "admin"],
-        default: "customer",
-        index: true,
+      type: String,
+      enum: ["customer", "admin"],
+      default: "customer",
+      index: true,
     },
     addresses: { type: [addressSchema], default: [] },
-}, { timestamps: true });
-export default models.User ||
-    model("User", schema);
+  },
+  { timestamps: true },
+);
+export default models.User || model("User", schema);

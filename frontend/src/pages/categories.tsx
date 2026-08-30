@@ -91,20 +91,52 @@ const categoryImageMap: Record<string, string> = {
 export default function CategoriesPage() {
   const [search, setSearch] = useState("");
   const [availableCategories, setAvailableCategories] = useState<string[]>([]);
+  const [categoryImages, setCategoryImages] = useState<Record<string, string>>(
+    {},
+  );
 
   useEffect(() => {
     void apiFetch("/products/filters")
       .then(async (response) => {
-        if (!response.ok) return { categories: [] };
-        return response.json();
+        if (!response.ok) return { categories: [] as string[] };
+        return (await response.json()) as { categories?: string[] };
       })
-      .then((data) => {
-        const categories = Array.isArray(data?.categories)
-          ? data.categories.filter((category: unknown): category is string =>
-              typeof category === "string" && category.trim().length > 0,
-            )
+      .then(async (data) => {
+        const rawCategories = Array.isArray(data?.categories)
+          ? data.categories
           : [];
-        setAvailableCategories(categories.sort());
+        const categories = rawCategories.filter(
+          (category): category is string =>
+            typeof category === "string" && category.trim().length > 0,
+        );
+        const sortedCategories = Array.from(new Set(categories)).sort();
+        setAvailableCategories(sortedCategories);
+
+        const nextImages: Record<string, string> = {};
+        for (const category of sortedCategories) {
+          try {
+            const response = await apiFetch(
+              `/products?category=${encodeURIComponent(category)}&limit=1&sort=newest`,
+            );
+            const payload = (await response.json()) as {
+              products?: Array<{ images?: string[] }>;
+            };
+            const product = Array.isArray(payload?.products)
+              ? payload.products[0]
+              : null;
+            const image =
+              product?.images?.[0] ??
+              categoryImageMap[category] ??
+              "/product-images/catalogue-fallbacks/staples.webp";
+            nextImages[category] = image;
+          } catch {
+            nextImages[category] =
+              categoryImageMap[category] ??
+              "/product-images/catalogue-fallbacks/staples.webp";
+          }
+        }
+
+        setCategoryImages((current) => ({ ...current, ...nextImages }));
       })
       .catch(() => {
         setAvailableCategories([]);
@@ -113,10 +145,14 @@ export default function CategoriesPage() {
 
   const visibleGroups = useMemo(() => {
     const knownCategories = new Set(
-      defaultCategoryGroups.flatMap((group) => group.items.map(([category]) => category)),
+      defaultCategoryGroups.flatMap((group) =>
+        group.items.map(([category]) => category),
+      ),
     );
     const categories =
-      availableCategories.length > 0 ? availableCategories : [...knownCategories];
+      availableCategories.length > 0
+        ? availableCategories
+        : [...knownCategories];
     const extraCategories = categories.filter(
       (category) => !knownCategories.has(category),
     );
@@ -124,22 +160,40 @@ export default function CategoriesPage() {
     const groups: CategoryGroup[] = [
       ...defaultCategoryGroups.map((group) => ({
         ...group,
-        items: group.items.filter(([category]) => categories.includes(category)),
+        items: group.items.filter(([category]) =>
+          categories.includes(category),
+        ),
       })),
     ];
 
     if (extraCategories.length) {
       groups.push({
         title: "More categories",
-        items: extraCategories.map((category) => [
-          category,
-          category,
-          categoryImageMap[category] ?? "/product-images/catalogue-fallbacks/staples.webp",
-        ]),
+        items: extraCategories.map(
+          (category) =>
+            [
+              category,
+              category,
+              categoryImages[category] ??
+                categoryImageMap[category] ??
+                "/product-images/catalogue-fallbacks/staples.webp",
+            ] as [string, string, string],
+        ),
       });
     }
 
     return groups
+      .map((group) => ({
+        ...group,
+        items: group.items.map(
+          ([category, label, image]) =>
+            [category, label, categoryImages[category] ?? image] as [
+              string,
+              string,
+              string,
+            ],
+        ),
+      }))
       .map((group) => ({
         ...group,
         items: group.items.filter(([category, label]) =>
@@ -147,7 +201,7 @@ export default function CategoriesPage() {
         ),
       }))
       .filter((group) => group.items.length);
-  }, [availableCategories, search]);
+  }, [availableCategories, categoryImages, search]);
   return (
     <>
       <Head>

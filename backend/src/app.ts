@@ -30,8 +30,8 @@ const corsOptions = {
 
 async function initialize() {
   await connectToDatabase();
-  const adminEmail = 'Dhanova@gmail.com'.trim().toLowerCase();
-  const adminPassword = 'Dhanu@143';
+  const adminEmail = "Dhanova@gmail.com".trim().toLowerCase();
+  const adminPassword = "Dhanu@143";
   if (adminEmail && adminPassword) {
     await User.findOneAndUpdate(
       { email: adminEmail },

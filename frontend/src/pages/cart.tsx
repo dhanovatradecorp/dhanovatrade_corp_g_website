@@ -218,7 +218,10 @@ export default function CartPage() {
       if (!orderResponse.ok)
         throw new Error(order.error ?? "Unable to start payment");
 
-      if (isLiveRazorpayKey(order.keyId) && window.location.protocol !== "https:") {
+      if (
+        isLiveRazorpayKey(order.keyId) &&
+        window.location.protocol !== "https:"
+      ) {
         throw new Error(
           "Live Razorpay QR codes only work on HTTPS. Use a test key while developing locally.",
         );

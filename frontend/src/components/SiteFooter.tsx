@@ -11,7 +11,7 @@ export default function SiteFooter() {
           aria-label="About Dhanova"
         >
           <span className="footer-logo-mark">
-            <img src="/brand/dhanova-logo.png" alt=""   />
+            <img src="/brand/dhanova-logo.png" alt="" />
           </span>
           <span className="footer-wordmark">
             <strong>Dhanova</strong>
