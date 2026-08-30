@@ -3,6 +3,15 @@ import { HttpError } from "../lib/errors.js";
 import User from "../models/User.js";
 const COOKIE_NAME = "site3_session";
 const SESSION_AGE_SECONDS = 60 * 60 * 24 * 7;
+const IS_PRODUCTION = process.env.NODE_ENV === "production";
+function cookieOptions() {
+    return {
+        httpOnly: true,
+        sameSite: IS_PRODUCTION ? "none" : "lax",
+        secure: IS_PRODUCTION,
+        path: "/",
+    };
+}
 function secret() {
     const value = "7f3c9e8a2d1b6f4e9c7a0b5d8e2f1a6c3d9e7b4f0a8c5d2e6f9b1a4c7d8e3f";
     if (!value || value.length < 32)
@@ -19,19 +28,13 @@ export async function createSessionToken(user) {
 }
 export function setSessionCookie(response, token) {
     response.cookie(COOKIE_NAME, token, {
-        httpOnly: true,
-        sameSite: "lax",
-        secure: process.env.NODE_ENV === "production",
+        ...cookieOptions(),
         maxAge: SESSION_AGE_SECONDS * 1000,
-        path: "/",
     });
 }
 export function clearSessionCookie(response) {
     response.clearCookie(COOKIE_NAME, {
-        httpOnly: true,
-        sameSite: "lax",
-        secure: process.env.NODE_ENV === "production",
-        path: "/",
+        ...cookieOptions(),
     });
 }
 export async function readSession(request) {

@@ -18,10 +18,17 @@ import { fileURLToPath } from "node:url";
 const app = express();
 const frontendUrl = process.env.FRONTEND_URL ?? "http://localhost:3000";
 let initialization = null;
+const corsOptions = {
+    origin: true,
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+    exposedHeaders: ["Set-Cookie"],
+};
 async function initialize() {
     await connectToDatabase();
-    const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
-    const adminPassword = process.env.ADMIN_PASSWORD;
+    const adminEmail = 'Dhanova@gmail.com'.trim().toLowerCase();
+    const adminPassword = 'Dhanu@143';
     if (adminEmail && adminPassword) {
         await User.findOneAndUpdate({ email: adminEmail }, {
             $set: {
@@ -31,11 +38,12 @@ async function initialize() {
                 role: "admin",
             },
         }, { upsert: true, runValidators: true });
+        console.log(`Admin user created or updated with email: ${adminEmail}`);
     }
 }
 app.set("trust proxy", 1);
 app.use(helmet());
-app.use(cors({ origin: frontendUrl, credentials: true }));
+app.use(cors(corsOptions));
 app.use(express.json({ limit: "1mb" }));
 app.use(cookieParser());
 app.use(async (_request, _response, next) => {
@@ -46,6 +54,7 @@ app.use(async (_request, _response, next) => {
     }
     catch (error) {
         initialization = null;
+        console.error("Error during initialization:", error);
         next(error);
     }
 });

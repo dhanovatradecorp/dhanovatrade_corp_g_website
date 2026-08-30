@@ -13,6 +13,16 @@ export type SessionUser = {
 
 const COOKIE_NAME = "site3_session";
 const SESSION_AGE_SECONDS = 60 * 60 * 24 * 7;
+const IS_PRODUCTION = process.env.NODE_ENV === "production";
+
+function cookieOptions() {
+  return {
+    httpOnly: true,
+    sameSite: IS_PRODUCTION ? "none" : "lax",
+    secure: IS_PRODUCTION,
+    path: "/",
+  } as const;
+}
 
 function secret() {
   const value =
@@ -33,20 +43,14 @@ export async function createSessionToken(user: SessionUser) {
 
 export function setSessionCookie(response: Response, token: string) {
   response.cookie(COOKIE_NAME, token, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    ...cookieOptions(),
     maxAge: SESSION_AGE_SECONDS * 1000,
-    path: "/",
   });
 }
 
 export function clearSessionCookie(response: Response) {
   response.clearCookie(COOKIE_NAME, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
+    ...cookieOptions(),
   });
 }
 

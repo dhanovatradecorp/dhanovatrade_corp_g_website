@@ -30,8 +30,8 @@ const corsOptions = {
 
 async function initialize() {
   await connectToDatabase();
-  const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
-  const adminPassword = process.env.ADMIN_PASSWORD;
+  const adminEmail = 'Dhanova@gmail.com'.trim().toLowerCase();
+  const adminPassword = 'Dhanu@143';
   if (adminEmail && adminPassword) {
     await User.findOneAndUpdate(
       { email: adminEmail },
@@ -45,6 +45,7 @@ async function initialize() {
       },
       { upsert: true, runValidators: true },
     );
+    console.log(`Admin user created or updated with email: ${adminEmail}`);
   }
 }
 
@@ -60,6 +61,7 @@ app.use(async (_request, _response, next) => {
     next();
   } catch (error) {
     initialization = null;
+    console.error("Error during initialization:", error);
     next(error);
   }
 });
