@@ -440,34 +440,6 @@ export default function SiteHeader() {
           </button>
         </div>
       </div>
-      <nav
-        className={menuOpen ? "main-nav open" : "main-nav"}
-        aria-label="Product categories"
-      >
-        <div className="nav-scroll">
-          {navigation.map(({ category, href, label, icon: Icon }) => {
-            const active = category
-              ? router.pathname === "/products" &&
-                router.query.category === category
-              : router.pathname === href;
-            return (
-              <Link
-                key={label}
-                href={
-                  category
-                    ? { pathname: "/products", query: { category } }
-                    : (href ?? "/")
-                }
-                className={active ? "active" : ""}
-                onClick={() => setMenuOpen(false)}
-              >
-                <Icon size={21} />
-                <span>{label}</span>
-              </Link>
-            );
-          })}
-        </div>
-      </nav>
     </header>
   );
 }

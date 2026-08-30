@@ -84,6 +84,10 @@ function loadRazorpayCheckout() {
   });
 }
 
+function isLiveRazorpayKey(keyId?: string) {
+  return Boolean(keyId && /^rzp_live_/i.test(keyId));
+}
+
 export default function CartPage() {
   const router = useRouter();
   const [items, setItems] = useState<CartItem[]>([]);
@@ -213,6 +217,12 @@ export default function CartPage() {
       const order = await orderResponse.json();
       if (!orderResponse.ok)
         throw new Error(order.error ?? "Unable to start payment");
+
+      if (isLiveRazorpayKey(order.keyId) && window.location.protocol !== "https:") {
+        throw new Error(
+          "Live Razorpay QR codes only work on HTTPS. Use a test key while developing locally.",
+        );
+      }
 
       const instance = new window.Razorpay({
         key: order.keyId,
