@@ -19,31 +19,27 @@ const app = express();
 const frontendUrl = process.env.FRONTEND_URL ?? "http://localhost:3000";
 let initialization = null;
 const corsOptions = {
-  origin: true,
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
-  exposedHeaders: ["Set-Cookie"],
+    origin: true,
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+    exposedHeaders: ["Set-Cookie"],
 };
 async function initialize() {
-  await connectToDatabase();
-  const adminEmail = "Dhanova@gmail.com".trim().toLowerCase();
-  const adminPassword = "Dhanu@143";
-  if (adminEmail && adminPassword) {
-    await User.findOneAndUpdate(
-      { email: adminEmail },
-      {
-        $set: {
-          name: process.env.ADMIN_NAME?.trim() || "Dhanova Admin",
-          email: adminEmail,
-          passwordHash: await bcrypt.hash(adminPassword, 12),
-          role: "admin",
-        },
-      },
-      { upsert: true, runValidators: true },
-    );
-    console.log(`Admin user created or updated with email: ${adminEmail}`);
-  }
+    await connectToDatabase();
+    const adminEmail = "Dhanova@gmail.com".trim().toLowerCase();
+    const adminPassword = "Dhanu@143";
+    if (adminEmail && adminPassword) {
+        await User.findOneAndUpdate({ email: adminEmail }, {
+            $set: {
+                name: process.env.ADMIN_NAME?.trim() || "Dhanova Admin",
+                email: adminEmail,
+                passwordHash: await bcrypt.hash(adminPassword, 12),
+                role: "admin",
+            },
+        }, { upsert: true, runValidators: true });
+        console.log(`Admin user created or updated with email: ${adminEmail}`);
+    }
 }
 app.set("trust proxy", 1);
 app.use(helmet());
@@ -51,46 +47,36 @@ app.use(cors(corsOptions));
 app.use(express.json({ limit: "1mb" }));
 app.use(cookieParser());
 app.use(async (_request, _response, next) => {
-  try {
-    initialization ??= initialize();
-    await initialization;
-    next();
-  } catch (error) {
-    initialization = null;
-    console.error("Error during initialization:", error);
-    next(error);
-  }
+    try {
+        initialization ??= initialize();
+        await initialization;
+        next();
+    }
+    catch (error) {
+        initialization = null;
+        console.error("Error during initialization:", error);
+        next(error);
+    }
 });
-app.use(
-  "/api/uploads",
-  express.static(fileURLToPath(new URL("../uploads/", import.meta.url)), {
+app.use("/api/uploads", express.static(fileURLToPath(new URL("../uploads/", import.meta.url)), {
     fallthrough: false,
     maxAge: "7d",
-  }),
-);
+}));
 app.get("/api/health", (_request, response) => response.json({ status: "ok" }));
-app.use(
-  "/api/auth",
-  rateLimit({
+app.use("/api/auth", rateLimit({
     windowMs: 15 * 60 * 1000,
     limit: 30,
     standardHeaders: "draft-8",
     legacyHeaders: false,
-  }),
-  authRoutes,
-);
+}), authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/cart", cartRoutes);
-app.use(
-  "/api/payments",
-  rateLimit({
+app.use("/api/payments", rateLimit({
     windowMs: 15 * 60 * 1000,
     limit: 30,
     standardHeaders: "draft-8",
     legacyHeaders: false,
-  }),
-  paymentRoutes,
-);
+}), paymentRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/account", accountRoutes);
 app.use(errorHandler);

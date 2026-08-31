@@ -1,39 +1,20 @@
 import { HttpError } from "./errors.js";
 import Product from "../models/Product.js";
 export async function reserveInventory(items) {
-  const reserved = [];
-  try {
-    for (const item of items) {
-      const result = await Product.updateOne(
-        { _id: item.product, isActive: true, stock: { $gte: item.quantity } },
-        { $inc: { stock: -item.quantity } },
-      );
-      if (!result.modifiedCount)
-        throw new HttpError(
-          409,
-          "One or more products no longer have enough stock",
-        );
-      reserved.push(item);
+    const reserved = [];
+    try {
+        for (const item of items) {
+            const result = await Product.updateOne({ _id: item.product, isActive: true, stock: { $gte: item.quantity } }, { $inc: { stock: -item.quantity } });
+            if (!result.modifiedCount)
+                throw new HttpError(409, "One or more products no longer have enough stock");
+            reserved.push(item);
+        }
     }
-  } catch (error) {
-    await Promise.all(
-      reserved.map((item) =>
-        Product.updateOne(
-          { _id: item.product },
-          { $inc: { stock: item.quantity } },
-        ),
-      ),
-    );
-    throw error;
-  }
+    catch (error) {
+        await Promise.all(reserved.map((item) => Product.updateOne({ _id: item.product }, { $inc: { stock: item.quantity } })));
+        throw error;
+    }
 }
 export async function releaseInventory(items) {
-  await Promise.all(
-    items.map((item) =>
-      Product.updateOne(
-        { _id: item.product },
-        { $inc: { stock: item.quantity } },
-      ),
-    ),
-  );
+    await Promise.all(items.map((item) => Product.updateOne({ _id: item.product }, { $inc: { stock: item.quantity } })));
 }

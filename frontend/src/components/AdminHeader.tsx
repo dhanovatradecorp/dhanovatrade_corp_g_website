@@ -1,6 +1,12 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { LogOut, PackageSearch, ShieldCheck, Store } from "lucide-react";
+import {
+  ListOrdered,
+  LogOut,
+  PackageSearch,
+  ShieldCheck,
+  Store,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { apiFetch } from "@/lib/api";
 
@@ -44,7 +50,14 @@ export default function AdminHeader({ userName }: { userName?: string }) {
           <PackageSearch size={19} />
           Products
         </Link>
-        <Link href="/" target="_blank">
+        <Link
+          href="/orderadmin"
+          className={router.pathname === "/orderadmin" ? "active" : ""}
+        >
+          <ListOrdered size={19} />
+          Orders
+        </Link>
+        <Link href="/" className={router.pathname === "/" ? "active" : ""}>
           <Store size={19} />
           Store preview
         </Link>

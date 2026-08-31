@@ -5,75 +5,76 @@ const COOKIE_NAME = "site3_session";
 const SESSION_AGE_SECONDS = 60 * 60 * 24 * 7;
 const IS_PRODUCTION = process.env.NODE_ENV === "production";
 function cookieOptions() {
-  return {
-    httpOnly: true,
-    sameSite: IS_PRODUCTION ? "none" : "lax",
-    secure: IS_PRODUCTION,
-    path: "/",
-  };
+    return {
+        httpOnly: true,
+        sameSite: IS_PRODUCTION ? "none" : "lax",
+        secure: IS_PRODUCTION,
+        path: "/",
+    };
 }
 function secret() {
-  const value =
-    "7f3c9e8a2d1b6f4e9c7a0b5d8e2f1a6c3d9e7b4f0a8c5d2e6f9b1a4c7d8e3f";
-  if (!value || value.length < 32)
-    throw new Error("JWT_SECRET must be at least 32 characters long");
-  return new TextEncoder().encode(value);
+    const value = "7f3c9e8a2d1b6f4e9c7a0b5d8e2f1a6c3d9e7b4f0a8c5d2e6f9b1a4c7d8e3f";
+    if (!value || value.length < 32)
+        throw new Error("JWT_SECRET must be at least 32 characters long");
+    return new TextEncoder().encode(value);
 }
 export async function createSessionToken(user) {
-  return new SignJWT({ email: user.email, name: user.name, role: user.role })
-    .setProtectedHeader({ alg: "HS256" })
-    .setSubject(user.id)
-    .setIssuedAt()
-    .setExpirationTime(`${SESSION_AGE_SECONDS}s`)
-    .sign(secret());
+    return new SignJWT({ email: user.email, name: user.name, role: user.role })
+        .setProtectedHeader({ alg: "HS256" })
+        .setSubject(user.id)
+        .setIssuedAt()
+        .setExpirationTime(`${SESSION_AGE_SECONDS}s`)
+        .sign(secret());
 }
 export function setSessionCookie(response, token) {
-  response.cookie(COOKIE_NAME, token, {
-    ...cookieOptions(),
-    maxAge: SESSION_AGE_SECONDS * 1000,
-  });
+    response.cookie(COOKIE_NAME, token, {
+        ...cookieOptions(),
+        maxAge: SESSION_AGE_SECONDS * 1000,
+    });
 }
 export function clearSessionCookie(response) {
-  response.clearCookie(COOKIE_NAME, {
-    ...cookieOptions(),
-  });
+    response.clearCookie(COOKIE_NAME, {
+        ...cookieOptions(),
+    });
 }
 export async function readSession(request) {
-  const token = request.cookies?.[COOKIE_NAME];
-  if (!token) return null;
-  try {
-    const { payload } = await jwtVerify(token, secret());
-    if (
-      !payload.sub ||
-      typeof payload.email !== "string" ||
-      typeof payload.name !== "string" ||
-      (payload.role !== "customer" && payload.role !== "admin")
-    )
-      return null;
-    return {
-      id: payload.sub,
-      email: payload.email,
-      name: payload.name,
-      role: payload.role,
-    };
-  } catch {
-    return null;
-  }
+    const token = request.cookies?.[COOKIE_NAME];
+    if (!token)
+        return null;
+    try {
+        const { payload } = await jwtVerify(token, secret());
+        if (!payload.sub ||
+            typeof payload.email !== "string" ||
+            typeof payload.name !== "string" ||
+            (payload.role !== "customer" && payload.role !== "admin"))
+            return null;
+        return {
+            id: payload.sub,
+            email: payload.email,
+            name: payload.name,
+            role: payload.role,
+        };
+    }
+    catch {
+        return null;
+    }
 }
 export async function requireUser(request, _response, next) {
-  const user = await readSession(request);
-  if (!user) return next(new HttpError(401, "Authentication required"));
-  request.user = user;
-  next();
+    const user = await readSession(request);
+    if (!user)
+        return next(new HttpError(401, "Authentication required"));
+    request.user = user;
+    next();
 }
 export async function requireAdmin(request, _response, next) {
-  const user = await readSession(request);
-  if (!user) return next(new HttpError(401, "Authentication required"));
-  if (user.role !== "admin")
-    return next(new HttpError(403, "Admin access required"));
-  const current = await User.findById(user.id).select("role").lean();
-  if (!current || current.role !== "admin")
-    return next(new HttpError(403, "Admin access required"));
-  request.user = user;
-  next();
+    const user = await readSession(request);
+    if (!user)
+        return next(new HttpError(401, "Authentication required"));
+    if (user.role !== "admin")
+        return next(new HttpError(403, "Admin access required"));
+    const current = await User.findById(user.id).select("role").lean();
+    if (!current || current.role !== "admin")
+        return next(new HttpError(403, "Admin access required"));
+    request.user = user;
+    next();
 }

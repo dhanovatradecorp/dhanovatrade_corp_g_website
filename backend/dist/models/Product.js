@@ -1,14 +1,13 @@
 import mongoose from "mongoose";
 const { Schema, model, models } = mongoose;
-const schema = new Schema(
-  {
+const schema = new Schema({
     name: { type: String, required: true, trim: true, maxlength: 200 },
     slug: {
-      type: String,
-      required: true,
-      unique: true,
-      lowercase: true,
-      trim: true,
+        type: String,
+        required: true,
+        unique: true,
+        lowercase: true,
+        trim: true,
     },
     description: { type: String, required: true, maxlength: 5000 },
     brand: { type: String, required: true, trim: true, index: true },
@@ -24,15 +23,14 @@ const schema = new Schema(
     specifications: { type: Map, of: String, default: {} },
     tags: [{ type: String, lowercase: true, trim: true }],
     isActive: { type: Boolean, default: true, index: true },
-  },
-  { timestamps: true },
-);
+}, { timestamps: true });
 schema.index({
-  name: "text",
-  description: "text",
-  brand: "text",
-  tags: "text",
+    name: "text",
+    description: "text",
+    brand: "text",
+    tags: "text",
 });
 schema.index({ isActive: 1, category: 1, subcategory: 1, price: 1 });
 schema.index({ isActive: 1, createdAt: -1 });
-export default models.Product || model("Product", schema);
+export default models.Product ||
+    model("Product", schema);

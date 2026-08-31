@@ -1,7 +1,7 @@
 import { Router } from "express";
 import mongoose from "mongoose";
 import { z } from "zod";
-import { requireUser } from "../middleware/auth.js";
+import { requireAdmin, requireUser } from "../middleware/auth.js";
 import { HttpError } from "../lib/errors.js";
 import { releaseInventory, reserveInventory } from "../lib/order-inventory.js";
 import Cart from "../models/Cart.js";
@@ -11,6 +11,13 @@ import Product from "../models/Product.js";
 
 const router = Router();
 router.use(requireUser);
+
+router.use((request, response, next) => {
+  if (request.path === "/admin") {
+    return requireAdmin(request, response, next);
+  }
+  next();
+});
 
 router.get("/buy-again", async (request, response) => {
   const orders = await Order.find({
@@ -40,12 +47,65 @@ router.get("/buy-again", async (request, response) => {
   });
 });
 
+router.get("/admin", async (request, response) => {
+  const orders = await Order.find({})
+    .populate("user", "name email role")
+    .sort({ createdAt: -1 })
+    .limit(200)
+    .lean();
+
+  response.json({
+    orders: orders.map((order) => ({
+      ...order,
+      user:
+        order.user && typeof order.user === "object"
+          ? {
+              _id: (order.user as { _id?: unknown })._id?.toString?.() ?? "",
+              name: (order.user as { name?: string }).name ?? "Unknown user",
+              email: (order.user as { email?: string }).email ?? "",
+              role: (order.user as { role?: string }).role ?? "customer",
+            }
+          : null,
+    })),
+  });
+});
+
 router.get("/", async (request, response) => {
   const orders = await Order.find({ user: request.user!.id })
     .sort({ createdAt: -1 })
     .limit(50)
     .lean();
   response.json({ orders });
+});
+
+router.patch("/:id/status", requireAdmin, async (request, response) => {
+  const { id } = request.params;
+  const { status } = z
+    .object({
+      status: z.enum([
+        "pending",
+        "paid",
+        "processing",
+        "shipped",
+        "delivered",
+        "cancelled",
+      ]),
+    })
+    .parse(request.body);
+
+  if (!mongoose.isValidObjectId(id)) {
+    throw new HttpError(400, "Invalid order ID");
+  }
+
+  const order = await Order.findByIdAndUpdate(
+    id,
+    { $set: { status } },
+    { new: true },
+  ).lean();
+
+  if (!order) throw new HttpError(404, "Order not found");
+
+  response.json({ success: true, order });
 });
 
 router.post("/cash-on-delivery", async (request, response) => {
