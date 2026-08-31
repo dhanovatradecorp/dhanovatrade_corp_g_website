@@ -47,7 +47,7 @@ async function initialize() {
 }
 app.set("trust proxy", 1);
 app.use(helmet());
-app.use(moragan('dev'));
+app.use(moragan("dev"));
 app.use(cors(corsOptions));
 app.use(express.json({ limit: "1mb" }));
 app.use(cookieParser());
@@ -95,4 +95,7 @@ app.use(
 app.use("/api/orders", orderRoutes);
 app.use("/api/account", accountRoutes);
 app.use(errorHandler);
-export default app;
+const port = Number(process.env.PORT ?? 4000);
+app.listen(port, () =>
+  console.log(`Backend running at http://localhost:${port}`),
+);

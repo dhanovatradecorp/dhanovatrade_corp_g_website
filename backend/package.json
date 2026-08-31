@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "npm run import:csv && nodemon dist/server.js",
-    "import:csv": "tsx dist/scripts/import-csv-products.js \"data/dryfruit_grocery_ecommerce_30000_products_deduplicated.xlsx - Sheet1.csv\""
+    "dev": "npm run import:csv && nodemon server.js",
+    "import:csv": "node scripts/import-csv-products.js \"data/dryfruit_grocery_ecommerce_30000_products_deduplicated.xlsx - Sheet1.csv\""
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
@@ -27,8 +27,6 @@
     "@types/express": "^5.0.6",
     "@types/node": "^26.4.0",
     "fast-xml-parser": "^5.11.1",
-    "fflate": "^0.8.3",
-    "tsx": "^4.23.13",
-    "typescript": "^7.0.2"
+    "fflate": "^0.8.3"
   }
 }
