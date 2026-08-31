@@ -25,8 +25,8 @@ export default function SiteFooter() {
           <strong>Shop</strong>
           <Link
             href={{
-              pathname: "/",
-              query: { category: "Fresh Produce" },
+              pathname: "/products",
+
               hash: "catalog",
             }}
           >
@@ -34,8 +34,7 @@ export default function SiteFooter() {
           </Link>
           <Link
             href={{
-              pathname: "/",
-              query: { category: "Pantry & Staples" },
+              pathname: "/products",
               hash: "catalog",
             }}
           >

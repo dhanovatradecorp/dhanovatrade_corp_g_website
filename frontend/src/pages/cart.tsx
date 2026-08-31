@@ -13,6 +13,8 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { apiFetch } from "@/lib/api";
 import ProductImage from "@/components/ProductImage";
+import SiteHeader from "@/components/SiteHeader";
+import SiteFooter from "@/components/SiteFooter";
 
 type CartItem = {
   _id: string;
@@ -82,10 +84,6 @@ function loadRazorpayCheckout() {
     script.onerror = () => resolve(false);
     document.body.appendChild(script);
   });
-}
-
-function isLiveRazorpayKey(keyId?: string) {
-  return Boolean(keyId && /^rzp_live_/i.test(keyId));
 }
 
 export default function CartPage() {
@@ -218,15 +216,6 @@ export default function CartPage() {
       if (!orderResponse.ok)
         throw new Error(order.error ?? "Unable to start payment");
 
-      if (
-        isLiveRazorpayKey(order.keyId) &&
-        window.location.protocol !== "https:"
-      ) {
-        throw new Error(
-          "Live Razorpay QR codes only work on HTTPS. Use a test key while developing locally.",
-        );
-      }
-
       const instance = new window.Razorpay({
         key: order.keyId,
         amount: order.amount,
@@ -316,6 +305,7 @@ export default function CartPage() {
       <Head>
         <title>Cart | Dhanova</title>
       </Head>
+      <SiteHeader />
       <main className="content-page">
         <p className="eyebrow">YOUR SELECTION</p>
         <h1>Shopping cart</h1>
@@ -586,6 +576,7 @@ export default function CartPage() {
           </div>
         )}
       </main>
+      <SiteFooter />
     </>
   );
 }

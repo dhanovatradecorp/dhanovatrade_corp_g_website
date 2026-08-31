@@ -257,7 +257,7 @@ export default function AccountPage() {
           | Dhanova
         </title>
       </Head>
-      {router.isReady && router.query.section !== "profile" && <SiteHeader />}
+      <SiteHeader />
       <main className="account-shell">
         {loading ? (
           <div className="product-detail-loading">Loading account…</div>

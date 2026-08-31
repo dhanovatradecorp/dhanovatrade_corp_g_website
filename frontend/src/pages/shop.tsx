@@ -245,15 +245,15 @@ export default function Home() {
               throw new Error(data.error ?? "Unable to load homepage products");
             return data;
           })
-        : apiFetch(`/products?${params}`).then(async (response) => {
+        : apiFetch(`/products?${params}`).then(async (response:any) => {
             const data = await response.json();
             if (!response.ok)
               throw new Error(data.error ?? "Unable to load products");
             return data;
           });
     apiFetch("/products/filters")
-      .then((response) => (response.ok ? response.json() : null))
-      .then((filterData) => {
+      .then((response:any) => (response.ok ? response.json() : null))
+      .then((filterData:any) => {
         if (filterData)
           setOptions({
             categories: filterData.categories ?? [],
@@ -263,7 +263,7 @@ export default function Home() {
       })
       .catch(() => undefined);
     productRequest
-      .then((productData) => {
+      .then((productData:any) => {
         setProducts(productData.products ?? []);
         setPagination(
           productData.pagination ?? { page: 1, pages: 1, total: 0 },
@@ -288,7 +288,7 @@ export default function Home() {
 
   useEffect(() => {
     apiFetch("/cart")
-      .then(async (response) => {
+      .then(async (response:any) => {
         if (!response.ok) return;
         const data = await response.json();
         syncCartQuantities(data.cart?.items ?? []);

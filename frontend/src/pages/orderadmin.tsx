@@ -37,7 +37,14 @@ type Order = {
   } | null;
 };
 
-type StatusFilter = "all" | "pending" | "paid" | "processing" | "shipped" | "delivered" | "cancelled";
+type StatusFilter =
+  | "all"
+  | "pending"
+  | "paid"
+  | "processing"
+  | "shipped"
+  | "delivered"
+  | "cancelled";
 
 const statusOptions: { value: StatusFilter; label: string }[] = [
   { value: "all", label: "All status" },
@@ -157,7 +164,10 @@ export default function OrderAdminPage() {
         <title>Orders admin | Dhanova</title>
       </Head>
       <AdminHeader />
-      <main className="content-page" style={{ maxWidth: 1200, margin: "0 auto" }}>
+      <main
+        className="content-page"
+        style={{ maxWidth: 1200, margin: "0 auto" }}
+      >
         <p className="eyebrow">CONTROL PANEL</p>
         <div
           style={{
@@ -197,20 +207,33 @@ export default function OrderAdminPage() {
                 flexWrap: "wrap",
               }}
             >
-              <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
+              <div
+                style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}
+              >
                 <input
                   type="search"
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
                   placeholder="Search by customer, email, item or order ID"
                   aria-label="Search orders"
-                  style={{ minWidth: 280, padding: "0.7rem 0.9rem", borderRadius: 10, border: "1px solid #d1d5db" }}
+                  style={{
+                    minWidth: 280,
+                    padding: "0.7rem 0.9rem",
+                    borderRadius: 10,
+                    border: "1px solid #d1d5db",
+                  }}
                 />
                 <select
                   value={statusFilter}
-                  onChange={(event) => setStatusFilter(event.target.value as StatusFilter)}
+                  onChange={(event) =>
+                    setStatusFilter(event.target.value as StatusFilter)
+                  }
                   aria-label="Filter orders by status"
-                  style={{ padding: "0.7rem 0.9rem", borderRadius: 10, border: "1px solid #d1d5db" }}
+                  style={{
+                    padding: "0.7rem 0.9rem",
+                    borderRadius: 10,
+                    border: "1px solid #d1d5db",
+                  }}
                 >
                   {statusOptions.map((option) => (
                     <option key={option.value} value={option.value}>
@@ -221,14 +244,17 @@ export default function OrderAdminPage() {
               </div>
 
               <strong style={{ color: "#374151" }}>
-                {filteredOrders.length} order{filteredOrders.length === 1 ? "" : "s"}
+                {filteredOrders.length} order
+                {filteredOrders.length === 1 ? "" : "s"}
               </strong>
             </div>
 
             {filteredOrders.length === 0 ? (
               <div className="empty-state">
                 <h2>No matching orders</h2>
-                <p>Try another search term or pick a different status filter.</p>
+                <p>
+                  Try another search term or pick a different status filter.
+                </p>
               </div>
             ) : (
               <div style={{ display: "grid", gap: "1rem" }}>
@@ -252,7 +278,9 @@ export default function OrderAdminPage() {
                       }}
                     >
                       <div>
-                        <strong>Order #{order._id.slice(-8).toUpperCase()}</strong>
+                        <strong>
+                          Order #{order._id.slice(-8).toUpperCase()}
+                        </strong>
                         <p style={{ margin: "0.25rem 0 0", color: "#4b5563" }}>
                           {new Date(order.createdAt).toLocaleString("en-IN", {
                             dateStyle: "medium",
@@ -261,13 +289,23 @@ export default function OrderAdminPage() {
                         </p>
                       </div>
                       <div style={{ textAlign: "right" }}>
-                        <label style={{ display: "block", marginBottom: 8, fontSize: 12, color: "#6b7280" }}>
+                        <label
+                          style={{
+                            display: "block",
+                            marginBottom: 8,
+                            fontSize: 12,
+                            color: "#6b7280",
+                          }}
+                        >
                           Update status
                         </label>
                         <select
                           value={order.status}
                           onChange={(event) =>
-                            void updateOrderStatus(order._id, event.target.value)
+                            void updateOrderStatus(
+                              order._id,
+                              event.target.value,
+                            )
                           }
                           style={{
                             padding: "0.5rem 0.75rem",
@@ -294,23 +332,30 @@ export default function OrderAdminPage() {
                     <div
                       style={{
                         display: "grid",
-                        gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+                        gridTemplateColumns:
+                          "repeat(auto-fit, minmax(220px, 1fr))",
                         gap: "0.75rem",
                         marginBottom: "0.75rem",
                       }}
                     >
                       <div>
-                        <p style={{ margin: 0, color: "#6b7280", fontSize: 12 }}>
+                        <p
+                          style={{ margin: 0, color: "#6b7280", fontSize: 12 }}
+                        >
                           Customer
                         </p>
-                        <strong>{order.user?.name ?? "Unknown customer"}</strong>
+                        <strong>
+                          {order.user?.name ?? "Unknown customer"}
+                        </strong>
                         <p style={{ margin: "0.2rem 0 0" }}>
                           {order.user?.email ?? "No email available"}
                         </p>
                       </div>
 
                       <div>
-                        <p style={{ margin: 0, color: "#6b7280", fontSize: 12 }}>
+                        <p
+                          style={{ margin: 0, color: "#6b7280", fontSize: 12 }}
+                        >
                           Delivery
                         </p>
                         <strong>
@@ -318,7 +363,8 @@ export default function OrderAdminPage() {
                         </strong>
                         <p style={{ margin: "0.2rem 0 0" }}>
                           {order.deliveryAddress?.city ?? ""}
-                          {order.deliveryAddress?.city && order.deliveryAddress?.state
+                          {order.deliveryAddress?.city &&
+                          order.deliveryAddress?.state
                             ? ", "
                             : ""}
                           {order.deliveryAddress?.state ?? ""}
@@ -329,24 +375,43 @@ export default function OrderAdminPage() {
                       </div>
 
                       <div>
-                        <p style={{ margin: 0, color: "#6b7280", fontSize: 12 }}>
+                        <p
+                          style={{ margin: 0, color: "#6b7280", fontSize: 12 }}
+                        >
                           Payment
                         </p>
-                        <strong>{order.paymentProvider?.toUpperCase() ?? "N/A"}</strong>
+                        <strong>
+                          {order.paymentProvider?.toUpperCase() ?? "N/A"}
+                        </strong>
                         <p style={{ margin: "0.2rem 0 0" }}>
-                          Subtotal: ₹{Number(order.subtotal || 0).toLocaleString("en-IN")}
+                          Subtotal: ₹
+                          {Number(order.subtotal || 0).toLocaleString("en-IN")}
                         </p>
                       </div>
                     </div>
 
                     <div>
-                      <p style={{ margin: "0 0 0.5rem", color: "#6b7280", fontSize: 12 }}>
+                      <p
+                        style={{
+                          margin: "0 0 0.5rem",
+                          color: "#6b7280",
+                          fontSize: 12,
+                        }}
+                      >
                         Items
                       </p>
-                      <ul style={{ margin: 0, paddingLeft: "1.1rem", display: "grid", gap: 6 }}>
+                      <ul
+                        style={{
+                          margin: 0,
+                          paddingLeft: "1.1rem",
+                          display: "grid",
+                          gap: 6,
+                        }}
+                      >
                         {order.items.map((item, index) => (
                           <li key={`${order._id}-${index}`}>
-                            {item.name} × {item.quantity} — ₹{Number(item.price || 0).toLocaleString("en-IN")}
+                            {item.name} × {item.quantity} — ₹
+                            {Number(item.price || 0).toLocaleString("en-IN")}
                           </li>
                         ))}
                       </ul>
