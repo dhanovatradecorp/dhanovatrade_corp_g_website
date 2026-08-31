@@ -14,6 +14,7 @@ import paymentRoutes from "./routes/payments.js";
 import orderRoutes from "./routes/orders.js";
 import accountRoutes from "./routes/account.js";
 import User from "./models/User.js";
+import moragan from "morgan";
 import { fileURLToPath } from "node:url";
 const app = express();
 let initialization = null;
@@ -46,6 +47,7 @@ async function initialize() {
 }
 app.set("trust proxy", 1);
 app.use(helmet());
+app.use(moragan('dev'));
 app.use(cors(corsOptions));
 app.use(express.json({ limit: "1mb" }));
 app.use(cookieParser());

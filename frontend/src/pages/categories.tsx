@@ -90,12 +90,15 @@ const categoryImageMap: Record<string, string> = {
 
 export default function CategoriesPage() {
   const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState(true);
   const [availableCategories, setAvailableCategories] = useState<string[]>([]);
   const [categoryImages, setCategoryImages] = useState<Record<string, string>>(
     {},
   );
 
   useEffect(() => {
+    setLoading(true);
+
     void apiFetch("/products/filters")
       .then(async (response) => {
         if (!response.ok) return { categories: [] as string[] };
@@ -140,6 +143,9 @@ export default function CategoriesPage() {
       })
       .catch(() => {
         setAvailableCategories([]);
+      })
+      .finally(() => {
+        setLoading(false);
       });
   }, []);
 
@@ -213,61 +219,70 @@ export default function CategoriesPage() {
       </Head>
       <SiteHeader />
       <main className="categories-page page-shell">
-        <div className="categories-heading">
-          <div>
-            <p className="kicker">EXPLORE DHANOVA</p>
-            <h1>All Categories</h1>
-            <span>
-              Find everything you need, organised for faster shopping.
-            </span>
+        {loading ? (
+          <div className="premium-empty" aria-live="polite">
+            <h2>Loading categories...</h2>
+            <p>Preparing your shopping experience.</p>
           </div>
-          <Link href="/discover/top-picks">
-            <Sparkles size={18} /> View top picks
-          </Link>
-        </div>
-        <label className="category-search">
-          <Search size={22} />
-          <input
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search categories"
-            aria-label="Search categories"
-          />
-          <Link href="/products" aria-label="View saved favourites">
-            <Heart size={21} />
-          </Link>
-        </label>
-        <div className="category-groups">
-          {visibleGroups.map((group) => (
-            <section key={group.title}>
-              <h2>{group.title}</h2>
+        ) : (
+          <>
+            <div className="categories-heading">
               <div>
-                {group.items.map(([category, label, image]) => (
-                  <Link
-                    className="category-tile"
-                    key={category}
-                    href={{ pathname: "/products", query: { category } }}
-                  >
-                    <span>
-                      <ProductImage
-                        src={image}
-                        alt=""
-                        sizes="(max-width: 680px) 42vw, 190px"
-                      />
-                    </span>
-                    <strong>{label}</strong>
-                    <small>Shop now</small>
-                  </Link>
-                ))}
+                <p className="kicker">EXPLORE DHANOVA</p>
+                <h1>All Categories</h1>
+                <span>
+                  Find everything you need, organised for faster shopping.
+                </span>
               </div>
-            </section>
-          ))}
-        </div>
-        {!visibleGroups.length && (
-          <div className="premium-empty">
-            <h2>No categories found</h2>
-            <p>Try a different search.</p>
-          </div>
+              <Link href="/discover/top-picks">
+                <Sparkles size={18} /> View top picks
+              </Link>
+            </div>
+            <label className="category-search">
+              <Search size={22} />
+              <input
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Search categories"
+                aria-label="Search categories"
+              />
+              <Link href="/products" aria-label="View saved favourites">
+                <Heart size={21} />
+              </Link>
+            </label>
+            <div className="category-groups">
+              {visibleGroups.map((group) => (
+                <section key={group.title}>
+                  <h2>{group.title}</h2>
+                  <div>
+                    {group.items.map(([category, label, image]) => (
+                      <Link
+                        className="category-tile"
+                        key={category}
+                        href={{ pathname: "/products", query: { category } }}
+                      >
+                        <span>
+                          <ProductImage
+                            src={image}
+                            alt=""
+                            sizes="(max-width: 680px) 42vw, 190px"
+                          />
+                        </span>
+                        <strong>{label}</strong>
+                        <small>Shop now</small>
+                      </Link>
+                    ))}
+                  </div>
+                </section>
+              ))}
+            </div>
+            {!visibleGroups.length && (
+              <div className="premium-empty">
+                <h2>No categories found</h2>
+                <p>Try a different search.</p>
+              </div>
+            )}
+          </>
         )}
       </main>
       <SiteFooter />
