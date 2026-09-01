@@ -3489,10 +3489,7 @@ textarea:focus {
 .site-footer {
   background: var(--navy);
 }
-.social-links a:hover {
-  border-color: var(--gold);
-  color: var(--gold);
-}
+ 
 .footer-links strong {
   color: var(--gold);
 }
